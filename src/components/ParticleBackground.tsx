@@ -1,5 +1,5 @@
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import * as THREE from "three";
 import { useParticleScene } from "./particles/useParticleScene";
 import { useParticleAnimation } from "./particles/useParticleAnimation";
