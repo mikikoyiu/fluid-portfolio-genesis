@@ -1,26 +1,20 @@
 
-import { useEffect, useRef } from "react";
-
-interface Particle {
-  x: number;
-  y: number;
-  size: number;
-  speedX: number;
-  speedY: number;
-  opacity: number;
-  color: string;
-}
+import { useEffect, useRef, useState } from "react";
+import * as THREE from "three";
 
 interface ParticleBackgroundProps {
   particleCount?: number;
 }
 
-const ParticleBackground = ({ particleCount = 80 }: ParticleBackgroundProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
-  const particles = useRef<Particle[]>([]);
-  const mousePosition = useRef({ x: 0, y: 0 });
+const ParticleBackground = ({ particleCount = 60 }: ParticleBackgroundProps) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const animationRef = useRef<number>(0);
-  
+  const sceneRef = useRef<THREE.Scene | null>(null);
+  const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
+  const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
+  const cubesRef = useRef<THREE.Mesh[]>([]);
+
   // Generate gradient colors for particles
   const colors = [
     '#9b87f5', // Purple
@@ -31,123 +25,195 @@ const ParticleBackground = ({ particleCount = 80 }: ParticleBackgroundProps) => 
   ];
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    if (!containerRef.current) return;
     
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
+    // Scene setup
+    const scene = new THREE.Scene();
+    sceneRef.current = scene;
     
-    const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      initParticles();
-    };
+    // Camera setup
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    camera.position.z = 30;
+    cameraRef.current = camera;
     
-    const handleMouseMove = (e: MouseEvent) => {
-      mousePosition.current.x = e.clientX;
-      mousePosition.current.y = e.clientY;
-    };
+    // Renderer setup
+    const renderer = new THREE.WebGLRenderer({ 
+      alpha: true,
+      antialias: true
+    });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setClearColor(0x000000, 0);
+    rendererRef.current = renderer;
     
-    const initParticles = () => {
-      particles.current = [];
+    containerRef.current.appendChild(renderer.domElement);
+
+    // Lights
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+    scene.add(ambientLight);
+    
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(0, 10, 10);
+    scene.add(directionalLight);
+    
+    // Add point lights for glow effects
+    const purpleLight = new THREE.PointLight(0x9b87f5, 0.8, 50);
+    purpleLight.position.set(10, 5, 10);
+    scene.add(purpleLight);
+    
+    const pinkLight = new THREE.PointLight(0xD946EF, 0.8, 50);
+    pinkLight.position.set(-10, -5, 10);
+    scene.add(pinkLight);
+    
+    // Create architectural blocks
+    const createBlocks = () => {
+      cubesRef.current = [];
+      
+      // Different geometric shapes for architectural feel
+      const geometries = [
+        new THREE.BoxGeometry(1, 1, 1),
+        new THREE.BoxGeometry(1.5, 0.5, 0.5),
+        new THREE.BoxGeometry(0.5, 1.5, 0.5),
+        new THREE.BoxGeometry(0.5, 0.5, 1.5),
+        new THREE.CylinderGeometry(0.3, 0.3, 1.5, 6),
+      ];
+      
       for (let i = 0; i < particleCount; i++) {
-        const color = colors[Math.floor(Math.random() * colors.length)];
-        particles.current.push({
-          x: Math.random() * canvas.width,
-          y: Math.random() * canvas.height,
-          size: Math.random() * 3 + 1,
-          speedX: (Math.random() - 0.5) * 0.8,
-          speedY: (Math.random() - 0.5) * 0.8,
-          opacity: Math.random() * 0.5 + 0.2,
-          color,
+        // Choose a random geometry for variety
+        const geometryIndex = Math.floor(Math.random() * geometries.length);
+        const geometry = geometries[geometryIndex];
+        
+        // Create semi-transparent material with gradient color
+        const colorIndex = Math.floor(Math.random() * colors.length);
+        const material = new THREE.MeshPhysicalMaterial({
+          color: new THREE.Color(colors[colorIndex]),
+          transparent: true,
+          opacity: Math.random() * 0.3 + 0.1,
+          metalness: 0.2,
+          roughness: 0.5,
+          transmission: 0.6,
+          reflectivity: 0.5,
         });
+        
+        const cube = new THREE.Mesh(geometry, material);
+        
+        // Position cubes in space
+        const spread = 40;
+        cube.position.x = (Math.random() - 0.5) * spread;
+        cube.position.y = (Math.random() - 0.5) * spread;
+        cube.position.z = (Math.random() - 0.5) * spread;
+        
+        // Random rotation
+        cube.rotation.x = Math.random() * Math.PI;
+        cube.rotation.y = Math.random() * Math.PI;
+        cube.rotation.z = Math.random() * Math.PI;
+        
+        // Add to scene and reference array
+        scene.add(cube);
+        cubesRef.current.push(cube);
       }
     };
     
-    const animate = () => {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    createBlocks();
+    
+    // Handle window resize
+    const handleResize = () => {
+      if (!cameraRef.current || !rendererRef.current) return;
       
-      particles.current.forEach((particle) => {
-        // Calculate distance from mouse for interaction
-        const dx = mousePosition.current.x - particle.x;
-        const dy = mousePosition.current.y - particle.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
+      cameraRef.current.aspect = window.innerWidth / window.innerHeight;
+      cameraRef.current.updateProjectionMatrix();
+      
+      rendererRef.current.setSize(window.innerWidth, window.innerHeight);
+    };
+    
+    window.addEventListener('resize', handleResize);
+    
+    // Handle mouse movement for parallax effect
+    const handleMouseMove = (e: MouseEvent) => {
+      // Normalize mouse position to range -1 to 1
+      const x = (e.clientX / window.innerWidth) * 2 - 1;
+      const y = -(e.clientY / window.innerHeight) * 2 + 1;
+      
+      setMousePosition({ x, y });
+    };
+    
+    window.addEventListener('mousemove', handleMouseMove);
+    
+    // Animation loop
+    const animate = () => {
+      if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
+      
+      // Move camera slightly based on mouse position (parallax effect)
+      if (cameraRef.current) {
+        const targetX = mousePosition.x * 2; 
+        const targetY = mousePosition.y * 2;
         
-        // Interact with mouse if close enough
-        if (distance < 120) {
-          const angle = Math.atan2(dy, dx);
-          const repelForce = (120 - distance) / 120; // Stronger force as mouse gets closer
-          
-          // Push particles away from mouse cursor
-          particle.x -= Math.cos(angle) * repelForce;
-          particle.y -= Math.sin(angle) * repelForce;
-        }
+        // Smooth camera movement
+        cameraRef.current.position.x += (targetX - cameraRef.current.position.x) * 0.05;
+        cameraRef.current.position.y += (targetY - cameraRef.current.position.y) * 0.05;
         
-        // Update position
-        particle.x += particle.speedX;
-        particle.y += particle.speedY;
+        cameraRef.current.lookAt(0, 0, 0);
+      }
+      
+      // Animate cubes
+      cubesRef.current.forEach(cube => {
+        // Slow rotation
+        cube.rotation.x += 0.002;
+        cube.rotation.y += 0.003;
         
-        // Bounce off edges
-        if (particle.x < 0 || particle.x > canvas.width) {
-          particle.speedX = -particle.speedX;
-        }
-        if (particle.y < 0 || particle.y > canvas.height) {
-          particle.speedY = -particle.speedY;
-        }
-        
-        // Draw particle
-        ctx.beginPath();
-        ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = particle.color;
-        ctx.globalAlpha = particle.opacity;
-        ctx.fill();
-        ctx.globalAlpha = 1;
+        // Subtle floating motion
+        const time = Date.now() * 0.001;
+        const index = cubesRef.current.indexOf(cube);
+        cube.position.y += Math.sin(time + index) * 0.003;
+        cube.position.x += Math.cos(time + index * 0.5) * 0.002;
       });
       
-      // Connect nearby particles with lines
-      connectParticles(ctx);
-      
+      rendererRef.current.render(sceneRef.current, cameraRef.current);
       animationRef.current = requestAnimationFrame(animate);
     };
     
-    const connectParticles = (ctx: CanvasRenderingContext2D) => {
-      for (let i = 0; i < particles.current.length; i++) {
-        for (let j = i + 1; j < particles.current.length; j++) {
-          const dx = particles.current[i].x - particles.current[j].x;
-          const dy = particles.current[i].y - particles.current[j].y;
-          const distance = Math.sqrt(dx * dx + dy * dy);
-          
-          if (distance < 160) {
-            // Draw connection line with opacity based on distance
-            const opacity = 1 - (distance / 160);
-            ctx.beginPath();
-            ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 0.15})`;
-            ctx.lineWidth = 0.5;
-            ctx.moveTo(particles.current[i].x, particles.current[i].y);
-            ctx.lineTo(particles.current[j].x, particles.current[j].y);
-            ctx.stroke();
-          }
-        }
-      }
-    };
+    animate();
     
-    // Initialize
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    window.addEventListener('mousemove', handleMouseMove);
-    
-    animationRef.current = requestAnimationFrame(animate);
-    
+    // Cleanup
     return () => {
+      if (animationRef.current) {
+        cancelAnimationFrame(animationRef.current);
+      }
+      
       window.removeEventListener('resize', handleResize);
       window.removeEventListener('mousemove', handleMouseMove);
-      cancelAnimationFrame(animationRef.current);
+      
+      if (rendererRef.current && rendererRef.current.domElement) {
+        if (containerRef.current) {
+          containerRef.current.removeChild(rendererRef.current.domElement);
+        }
+        rendererRef.current.dispose();
+      }
+      
+      // Clean up geometries and materials
+      if (cubesRef.current.length > 0) {
+        cubesRef.current.forEach(cube => {
+          cube.geometry.dispose();
+          if (Array.isArray(cube.material)) {
+            cube.material.forEach(material => material.dispose());
+          } else {
+            cube.material.dispose();
+          }
+          if (sceneRef.current) {
+            sceneRef.current.remove(cube);
+          }
+        });
+      }
+      
+      if (sceneRef.current) {
+        sceneRef.current.clear();
+      }
     };
   }, [particleCount, colors]);
   
   return (
-    <canvas
-      ref={canvasRef}
+    <div
+      ref={containerRef}
       className="fixed top-0 left-0 w-full h-full -z-10 opacity-80"
     />
   );

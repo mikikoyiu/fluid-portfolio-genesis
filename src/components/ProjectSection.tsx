@@ -1,6 +1,8 @@
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
+import ProjectCard from "./ProjectCard";
 
 interface Project {
   id: string;
@@ -8,6 +10,7 @@ interface Project {
   description: string;
   category: "design" | "cad" | "hobbies";
   thumbnail: string;
+  images: Array<{ src: string, caption?: string }>;
 }
 
 // Sample projects data
@@ -18,14 +21,42 @@ const projects: Project[] = [
     title: "Social Media Posting Designs",
     description: "A collection of eye-catching social media designs created for various brands and campaigns.",
     category: "design",
-    thumbnail: "social-media.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Instagram carousel design for architectural showcase"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Social media campaign for sustainable architecture"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Brand consistency across platforms"
+      }
+    ]
   },
   {
     id: "architectural-commissions",
     title: "Architectural Commissions",
     description: "Professional architectural design work for residential and commercial clients.",
     category: "design",
-    thumbnail: "architecture.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Modern residential concept" 
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Commercial space renovation"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Sustainable urban planning proposal"
+      }
+    ]
   },
   
   // CAD Projects
@@ -34,21 +65,59 @@ const projects: Project[] = [
     title: "Tiny Home Project",
     description: "A sustainable, space-efficient tiny home design with modern amenities.",
     category: "cad",
-    thumbnail: "tiny-home.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Exterior rendering of tiny home design"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Interior layout optimization"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Sustainable features diagram"
+      }
+    ]
   },
   {
     id: "gadget-design",
     title: "Gadget Design",
     description: "Innovative gadget concepts designed for everyday convenience.",
     category: "cad",
-    thumbnail: "gadget.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Smart home controller prototype" 
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Ergonomic design process"
+      }
+    ]
   },
   {
     id: "furniture-design",
     title: "Furniture Design",
     description: "Custom furniture pieces designed with both aesthetics and functionality in mind.",
     category: "cad",
-    thumbnail: "furniture.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Modular shelving system"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Ergonomic chair design"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Multi-functional table concept"
+      }
+    ]
   },
   
   // Hobby Projects
@@ -57,107 +126,104 @@ const projects: Project[] = [
     title: "Nail Art",
     description: "Creative nail art designs exploring color, texture, and patterns.",
     category: "hobbies",
-    thumbnail: "nail-art.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Geometric pattern collection"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Architectural inspiration series" 
+      }
+    ]
   },
   {
     id: "visual-arts",
     title: "Visual Arts",
     description: "Personal art projects across various mediums including digital and traditional.",
     category: "hobbies",
-    thumbnail: "visual-arts.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Digital abstract compositions"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Mixed media explorations"
+      }
+    ]
   },
   {
     id: "photography",
     title: "Photography & Photoshop",
     description: "Photography work enhanced with creative Photoshop techniques.",
     category: "hobbies",
-    thumbnail: "photography.jpg",
+    thumbnail: "/assets/project-placeholder.svg",
+    images: [
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Urban geometry photo series"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Light and shadow studies"
+      },
+      { 
+        src: "/assets/project-placeholder.svg", 
+        caption: "Digital composition experiments"
+      }
+    ]
   },
 ];
 
-interface ProjectCardProps {
+interface ProjectThumbnailProps {
   project: Project;
   onClick: () => void;
+  delay: number;
 }
 
-const ProjectCard = ({ project, onClick }: ProjectCardProps) => {
+const ProjectThumbnail = ({ project, onClick, delay }: ProjectThumbnailProps) => {
   return (
-    <div 
-      className="group relative overflow-hidden rounded-xl hover-scale cursor-pointer"
+    <motion.div 
+      className="group relative overflow-hidden rounded-xl cursor-pointer"
       onClick={onClick}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: delay * 0.1 }}
+      whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
     >
-      <div className="aspect-[4/3] w-full bg-gradient-to-br from-portfolio-purple/50 via-portfolio-pink/50 to-portfolio-blue/50 rounded-xl overflow-hidden shadow-lg">
+      <div className="aspect-[4/3] w-full bg-gradient-to-br from-portfolio-purple/50 via-portfolio-pink/50 to-portfolio-blue/50 rounded-xl overflow-hidden shadow-lg relative">
+        {/* Thumbnail image */}
         <img 
-          src="/assets/project-placeholder.svg" 
+          src={project.thumbnail} 
           alt={project.title}
-          className="w-full h-full object-cover"
+          className="w-full h-full object-cover opacity-90"
         />
+        
+        {/* Architectural grid overlay */}
+        <div className="absolute inset-0 opacity-20 pointer-events-none">
+          <div className="w-full h-full grid grid-cols-8 grid-rows-6">
+            {Array.from({ length: 48 }).map((_, i) => (
+              <div key={i} className="border border-white/10"></div>
+            ))}
+          </div>
+        </div>
       </div>
       
-      {/* Overlay */}
+      {/* Hover overlay with animated assembly effect */}
       <div className="absolute inset-0 bg-gradient-to-t from-portfolio-dark/90 to-transparent p-4 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <h3 className="text-lg font-semibold text-white mb-1">{project.title}</h3>
+        {/* Title with gradient animation */}
+        <h3 className="text-lg font-semibold mb-1">
+          <span className="bg-gradient-to-r from-portfolio-purple via-portfolio-pink to-portfolio-blue bg-clip-text text-transparent bg-[size:200%] hover:bg-[position:100%] transition-[background-position] duration-500">
+            {project.title}
+          </span>
+        </h3>
+        
         <p className="text-sm text-white/70 line-clamp-2">{project.description}</p>
       </div>
-    </div>
-  );
-};
-
-interface ProjectModalProps {
-  project: Project | null;
-  isOpen: boolean;
-  onClose: () => void;
-}
-
-const ProjectModal = ({ project, isOpen, onClose }: ProjectModalProps) => {
-  if (!project) return null;
-  
-  return (
-    <div 
-      className={cn(
-        "fixed inset-0 z-50 flex items-center justify-center p-4 transition-all duration-300",
-        isOpen ? "opacity-100 visible" : "opacity-0 invisible"
-      )}
-    >
-      {/* Backdrop */}
-      <div 
-        className="absolute inset-0 bg-portfolio-dark/80 backdrop-blur-sm" 
-        onClick={onClose}
-      />
-      
-      {/* Modal Content */}
-      <div className="relative bg-portfolio-dark/95 border border-white/10 rounded-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto z-10 shadow-xl animate-scale-up">
-        <button 
-          className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition-colors"
-          onClick={onClose}
-        >
-          <span className="text-white">&times;</span>
-        </button>
-        
-        {/* Project Image */}
-        <div className="w-full aspect-video bg-gradient-to-r from-portfolio-purple/30 via-portfolio-pink/30 to-portfolio-blue/30 overflow-hidden">
-          <img 
-            src="/assets/project-placeholder.svg" 
-            alt={project.title}
-            className="w-full h-full object-cover"
-          />
-        </div>
-        
-        {/* Project Details */}
-        <div className="p-6">
-          <h3 className="text-2xl font-display font-bold text-white mb-3">{project.title}</h3>
-          <p className="text-white/80 mb-6">{project.description}</p>
-          
-          <div className="flex items-center">
-            <span className="px-3 py-1 rounded-full text-xs font-medium bg-white/10 text-white/70 uppercase tracking-wide">
-              {project.category}
-            </span>
-          </div>
-          
-          {/* Project specific content could be added here based on category */}
-        </div>
-      </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -174,31 +240,70 @@ interface CategorySectionProps {
 const CategorySection = ({ id, title, description, color, category, projects, onProjectClick }: CategorySectionProps) => {
   const filteredProjects = projects.filter(project => project.category === category);
   
+  // Create architectural blueprint lines
+  const createBlueprintLines = () => {
+    return Array.from({ length: 8 }).map((_, index) => (
+      <div 
+        key={`h-line-${index}`} 
+        className="absolute left-0 right-0 h-px bg-white/5"
+        style={{ top: `${(index + 1) * 10}%` }}
+      />
+    )).concat(
+      Array.from({ length: 8 }).map((_, index) => (
+        <div 
+          key={`v-line-${index}`} 
+          className="absolute top-0 bottom-0 w-px bg-white/5"
+          style={{ left: `${(index + 1) * 10}%` }}
+        />
+      ))
+    );
+  };
+  
   return (
     <section id={id} className="section-padding relative">
       <div className="max-w-7xl mx-auto">
-        <h2 
-          className={`text-4xl md:text-5xl font-display font-bold mb-6 ${color}`}
-        >
-          {title}
-        </h2>
-        <p className="text-lg text-white/70 max-w-2xl mb-12">{description}</p>
+        {/* Blueprint grid background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          {createBlueprintLines()}
+        </div>
         
+        {/* Section title with animated gradient */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+        >
+          <h2 className={`text-4xl md:text-5xl font-display font-bold mb-6 relative group`}>
+            <span className="inline-block relative">
+              {/* Gradient text */}
+              <span className={`bg-gradient-to-r from-portfolio-purple via-portfolio-pink to-portfolio-blue bg-clip-text text-transparent bg-[size:200%] group-hover:bg-[position:100%] transition-[background-position] duration-700`}>
+                {title}
+              </span>
+              
+              {/* Bottom glowing line */}
+              <span className="absolute -bottom-2 left-0 w-full h-0.5 bg-gradient-to-r from-portfolio-purple via-portfolio-pink to-portfolio-blue opacity-70 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left"></span>
+            </span>
+          </h2>
+          
+          <p className="text-lg text-white/70 max-w-2xl mb-12">{description}</p>
+        </motion.div>
+        
+        {/* Project grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project, index) => (
-            <div 
-              key={project.id} 
-              className="opacity-0 animate-slide-up" 
-              style={{ animationDelay: `${index * 0.1}s`, animationFillMode: 'forwards' }}
-            >
-              <ProjectCard project={project} onClick={() => onProjectClick(project)} />
-            </div>
+            <ProjectThumbnail 
+              key={project.id}
+              project={project}
+              onClick={() => onProjectClick(project)}
+              delay={index}
+            />
           ))}
         </div>
       </div>
       
       {/* Background accent */}
-      <div 
+      <motion.div 
         className={`absolute ${category === "design" ? "top-1/4 -left-40" : category === "cad" ? "bottom-1/4 -right-40" : "top-1/2 left-1/2 transform -translate-x-1/2"} w-96 h-96 rounded-full filter blur-[150px] -z-10 opacity-30`}
         style={{
           background: category === "design" 
@@ -207,6 +312,15 @@ const CategorySection = ({ id, title, description, color, category, projects, on
             ? "radial-gradient(circle, rgba(217, 70, 239, 0.4) 0%, rgba(217, 70, 239, 0) 70%)"
             : "radial-gradient(circle, rgba(14, 165, 233, 0.4) 0%, rgba(14, 165, 233, 0) 70%)"
         }}
+        animate={{
+          scale: [1, 1.05, 1],
+          opacity: [0.3, 0.35, 0.3],
+        }}
+        transition={{
+          duration: 8,
+          repeat: Infinity,
+          repeatType: "reverse"
+        }}
       />
     </section>
   );
@@ -214,16 +328,13 @@ const CategorySection = ({ id, title, description, color, category, projects, on
 
 const ProjectsSection = () => {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleProjectClick = (project: Project) => {
     setSelectedProject(project);
-    setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setTimeout(() => setSelectedProject(null), 300); // Clear selected project after animation
+    setSelectedProject(null);
   };
 
   return (
@@ -258,11 +369,14 @@ const ProjectsSection = () => {
         onProjectClick={handleProjectClick}
       />
 
-      <ProjectModal
-        project={selectedProject}
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-      />
+      {selectedProject && (
+        <ProjectCard
+          title={selectedProject.title}
+          description={selectedProject.description}
+          images={selectedProject.images}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };
