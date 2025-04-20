@@ -66,6 +66,7 @@ export const useParticleScene = ({ particleCount, onSceneReady }: UseParticleSce
         }
       });
       
+      // Clean up the scene properly
       if (rendererRef.current) {
         rendererRef.current.dispose();
       }

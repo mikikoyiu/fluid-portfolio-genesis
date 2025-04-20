@@ -18,16 +18,15 @@ const ParticleBackground = ({ particleCount = 60 }: ParticleBackgroundProps) => 
     cubes: THREE.Mesh[];
   }>({ scene: null, camera: null, renderer: null, cubes: [] });
 
+  // Initialize the scene
   useParticleScene({
     particleCount,
     onSceneReady: (scene, camera, renderer, cubes) => {
-      if (containerRef.current) {
-        containerRef.current.appendChild(renderer.domElement);
-      }
       setSceneState({ scene, camera, renderer, cubes });
     },
   });
 
+  // Handle mouse movement
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       const x = (e.clientX / window.innerWidth) * 2 - 1;
@@ -39,11 +38,29 @@ const ParticleBackground = ({ particleCount = 60 }: ParticleBackgroundProps) => 
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
+  // Ensure renderer is attached to the container
+  useEffect(() => {
+    if (containerRef.current && sceneState.renderer) {
+      containerRef.current.appendChild(sceneState.renderer.domElement);
+      
+      return () => {
+        if (containerRef.current && sceneState.renderer) {
+          try {
+            containerRef.current.removeChild(sceneState.renderer.domElement);
+          } catch (e) {
+            console.log("Error removing renderer: ", e);
+          }
+        }
+      };
+    }
+  }, [sceneState.renderer]);
+
+  // Handle animation
   useParticleAnimation({
     containerRef,
-    scene: sceneState.scene!,
-    camera: sceneState.camera!,
-    renderer: sceneState.renderer!,
+    scene: sceneState.scene,
+    camera: sceneState.camera,
+    renderer: sceneState.renderer,
     cubes: sceneState.cubes,
     mousePosition,
   });

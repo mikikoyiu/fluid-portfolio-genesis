@@ -4,15 +4,14 @@ import * as THREE from "three";
 
 interface UseParticleAnimationProps {
   containerRef: RefObject<HTMLDivElement>;
-  scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera;
-  renderer: THREE.WebGLRenderer;
+  scene: THREE.Scene | null;
+  camera: THREE.PerspectiveCamera | null;
+  renderer: THREE.WebGLRenderer | null;
   cubes: THREE.Mesh[];
   mousePosition: { x: number; y: number };
 }
 
 export const useParticleAnimation = ({
-  containerRef,
   scene,
   camera,
   renderer,
@@ -22,9 +21,7 @@ export const useParticleAnimation = ({
   const animationRef = useRef<number>(0);
 
   useEffect(() => {
-    if (!containerRef.current) return;
-    
-    containerRef.current.appendChild(renderer.domElement);
+    if (!scene || !camera || !renderer) return;
     
     const animate = () => {
       if (!scene || !camera || !renderer) return;
@@ -59,11 +56,6 @@ export const useParticleAnimation = ({
       if (animationRef.current) {
         cancelAnimationFrame(animationRef.current);
       }
-      
-      if (renderer.domElement && containerRef.current) {
-        containerRef.current.removeChild(renderer.domElement);
-      }
     };
-  }, [containerRef, scene, camera, renderer, cubes, mousePosition]);
+  }, [scene, camera, renderer, cubes, mousePosition]);
 };
-
